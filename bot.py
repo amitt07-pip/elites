@@ -29,8 +29,8 @@ logger = logging.getLogger("EliteMarket")
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 LOG_CHANNEL_ID = os.environ.get("LOG_CHANNEL_ID", "")
-SECURITY_CHANNEL_ID = "-1002215462357"
-MONITORED_GROUP_ID = -1003446573761
+SECURITY_CHANNEL_ID = "-1003450478165"
+MONITORED_GROUP_ID = -1003451490827
 
 # Known member user IDs — additions by these users are considered trusted
 KNOWN_MEMBER_IDS = {
