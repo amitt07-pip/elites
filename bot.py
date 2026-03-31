@@ -34,20 +34,9 @@ MONITORED_GROUP_ID = -1003451490827
 
 # Known member user IDs — additions by these users are considered trusted
 KNOWN_MEMBER_IDS = {
-    1166772148,
-    1870644348,
-    5651721135,
-    5662585948,
-    6526824979,
-    6659288294,
-    6864194951,
-    7001100331,
-    7090417167,
-    7279906688,
-    7338429782,
-    7422906767,
-    7707071842,
-    7715451354,
+    7673180028,
+    8559400377,
+    8307544039,
 }
 
 # Auto-kick timeout in seconds (30 minutes)
@@ -1405,10 +1394,7 @@ async def handle_knlist_command(update: Update, context: ContextTypes.DEFAULT_TY
 
         # Hardcoded known members
         static_ids = {
-            1166772148, 1870644348, 5651721135, 5662585948,
-            6526824979, 6659288294, 6864194951, 7001100331,
-            7090417167, 7279906688, 7338429782, 7422906767,
-            7707071842, 7715451354,
+            7673180028, 8559400377, 8307544039,
         }
 
         static_lines = []
