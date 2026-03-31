@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+.env
+member_data.json
