@@ -1191,6 +1191,64 @@ async def handle_demote_command(update: Update, context: ContextTypes.DEFAULT_TY
     logger.info("Known member %s demoted %s (%s) from known member", sender.id, resolved_user_id, display)
 
 
+async def handle_kick_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle !kick @username/user_id — lets known members kick someone from the monitored group."""
+    message = update.effective_message
+    if not message or not message.text:
+        return
+
+    text = message.text.strip()
+    if not text.lower().startswith("!kick"):
+        return
+
+    sender = update.effective_user
+    if not sender or sender.id not in KNOWN_MEMBER_IDS:
+        return
+
+    _cache_user(sender)
+
+    resolved_user_id, resolved_display = await _resolve_user(message, text, context)
+
+    if resolved_user_id is None:
+        await message.reply_text(
+            "Could not resolve the user. Make sure the username or user ID is correct.\n\n"
+            "You can also reply to a message from that user with <b>!kick</b>.",
+            parse_mode="HTML",
+        )
+        return
+
+    display = resolved_display or f"User {resolved_user_id}"
+
+    if resolved_user_id in KNOWN_MEMBER_IDS:
+        await message.reply_text(
+            f"{display} (<code>{resolved_user_id}</code>) is a known member and cannot be kicked.",
+            parse_mode="HTML",
+        )
+        return
+
+    try:
+        await context.bot.ban_chat_member(chat_id=MONITORED_GROUP_ID, user_id=resolved_user_id)
+        await context.bot.unban_chat_member(chat_id=MONITORED_GROUP_ID, user_id=resolved_user_id)
+
+        # Clean up tracking if they were being tracked
+        info_key = f"{resolved_user_id}:{MONITORED_GROUP_ID}"
+        if info_key in _member_info:
+            _cleanup_tracked_member(resolved_user_id, MONITORED_GROUP_ID, context)
+
+        kicker_display = _get_username_display(sender)
+        await message.reply_text(
+            f"{display} (<code>{resolved_user_id}</code>) has been kicked from the monitored group by {kicker_display}.",
+            parse_mode="HTML",
+        )
+        logger.info("Known member %s kicked %s (%s) from monitored group", sender.id, resolved_user_id, display)
+    except Exception as e:
+        await message.reply_text(
+            f"Failed to kick {display} (<code>{resolved_user_id}</code>): {e}",
+            parse_mode="HTML",
+        )
+        logger.error("Failed to kick %s: %s", resolved_user_id, e)
+
+
 async def handle_refresh_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle !refresh — check all tracked members and remove those no longer in the group."""
     message = update.effective_message
@@ -1529,6 +1587,11 @@ def main() -> None:
     # !demote @username handler for known members to remove users from known members
     application.add_handler(
         MessageHandler(filters.TEXT & filters.Regex(r"(?i)^!demote"), handle_demote_command)
+    )
+
+    # !kick @username handler for known members to kick someone from the monitored group
+    application.add_handler(
+        MessageHandler(filters.TEXT & filters.Regex(r"(?i)^!kick"), handle_kick_command)
     )
 
     # !refresh handler for known members to refresh the tracking list
