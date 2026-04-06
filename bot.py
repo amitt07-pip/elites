@@ -715,6 +715,17 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             f"{added_by_display} (<code>{added_by.id}</code>) in the Elite Market Group ‼️"
         )
 
+        # Store in tracking for /unklist
+        _store_member_info(
+            new_member_id=new_member.id,
+            group_chat_id=group_chat_id,
+            hours=1,
+            new_member_display=new_member_display,
+            added_by_display=added_by_display,
+            adder_id=added_by.id,
+            adder_known=True,
+        )
+
         # Schedule security check after 1 hour
         await schedule_security_check(
             context,
