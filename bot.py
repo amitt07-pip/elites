@@ -259,8 +259,14 @@ async def schedule_security_check(
     new_member_display: str,
     added_by_display: str,
     adder_id: int = 0,
+    delay_seconds: int = 0,
 ) -> None:
-    """Schedule the first (or next) security check after SECURITY_CHECK_INTERVAL."""
+    """Schedule the first (or next) security check.
+
+    If *delay_seconds* is provided and > 0, use that as the wait time;
+    otherwise fall back to SECURITY_CHECK_INTERVAL (1 hour).
+    """
+    wait = delay_seconds if delay_seconds > 0 else SECURITY_CHECK_INTERVAL
     job_name = f"security_{new_member_id}_{group_chat_id}"
     # Remove any existing security check job for this member
     existing_jobs = context.job_queue.get_jobs_by_name(job_name)
@@ -269,7 +275,7 @@ async def schedule_security_check(
 
     context.job_queue.run_once(
         _security_check_job,
-        when=SECURITY_CHECK_INTERVAL,
+        when=wait,
         name=job_name,
         data={
             "member_id": new_member_id,
@@ -283,7 +289,7 @@ async def schedule_security_check(
     logger.info(
         "Scheduled security check for member %s in %s seconds (hour %s)",
         new_member_id,
-        SECURITY_CHECK_INTERVAL,
+        wait,
         hours,
     )
 
@@ -626,7 +632,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             parse_mode="HTML",
         )
 
-        # Schedule next check in 12 hours
+        # Schedule next check in 12 hours (43200 seconds)
         await schedule_security_check(
             context,
             new_member_id=member_id,
@@ -635,6 +641,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             new_member_display=new_member_display,
             added_by_display=added_by_display,
             adder_id=stored_adder_id,
+            delay_seconds=12 * 3600,
         )
 
     elif action == "hn":
@@ -1060,7 +1067,7 @@ async def handle_12hr_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     hours = int(info.get("hours", 1))
     added_by_display = str(info.get("adder_disp", adder_display))
 
-    # Schedule next check in 12 hours
+    # Schedule next check in 12 hours (43200 seconds)
     await schedule_security_check(
         context,
         new_member_id=resolved_user_id,
@@ -1069,6 +1076,7 @@ async def handle_12hr_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         new_member_display=new_member_display,
         added_by_display=added_by_display,
         adder_id=int(info.get("adder_id", sender.id)),
+        delay_seconds=12 * 3600,
     )
 
     await message.reply_text(
