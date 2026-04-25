@@ -987,6 +987,21 @@ async def handle_add_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         adder_id=sender.id,
     )
 
+    # Send log to log channel
+    if LOG_CHANNEL_ID:
+        log_message = (
+            f"~ {new_member_display} (<code>{resolved_user_id}</code>) has been added by "
+            f"{adder_display} (<code>{sender.id}</code>) in the Elite Market Group ‼️"
+        )
+        try:
+            await context.bot.send_message(
+                chat_id=int(LOG_CHANNEL_ID),
+                text=log_message,
+                parse_mode="HTML",
+            )
+        except Exception as e:
+            logger.error("Failed to send !add log message: %s", e)
+
     await message.reply_text(
         f"{new_member_display} (<code>{resolved_user_id}</code>) has been manually added to tracking by {adder_display}.",
         parse_mode="HTML",
