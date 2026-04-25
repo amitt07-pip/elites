@@ -674,11 +674,13 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         ChatMember.MEMBER,
         ChatMember.ADMINISTRATOR,
         ChatMember.OWNER,
+        ChatMember.RESTRICTED,
     )
     is_member = new_status in (
         ChatMember.MEMBER,
         ChatMember.ADMINISTRATOR,
         ChatMember.OWNER,
+        ChatMember.RESTRICTED,
     )
 
     # Detect member leaving: was a member, now is NOT a member
